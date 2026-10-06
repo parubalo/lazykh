@@ -1,4 +1,5 @@
 import argparse
+import os
 import os.path
 import json
 import numpy as np
@@ -6,7 +7,6 @@ import random
 from PIL import Image, ImageDraw
 import math
 from utils import getFilenameOfLine
-import shutil
 
 FRAME_START_RENDER_AT  = 0
 PRINT_EVERY = 10
@@ -33,12 +33,12 @@ def drawFrame(frameNum,paragraph,emotion,imageNum,pose,phoneNum,poseTimeSinceLas
     global BG_CACHE
     FLIPPED = (paragraph%2 == 1)
 
-    if paragraph == CACHES[0][0]:
-        frame = CACHES[0][1]
-    else:
-        frame = Image.open("backgrounds/bga"+str(paragraph%BACKGROUND_COUNT)+".png")
-        CACHES[0] = [paragraph,frame]
-    frame = Image.eval(frame, lambda x: int(256-(256-x)/2)) # Makes the entire background image move 50% closer to white. In other words, it's paler.
+    backgroundIndex = paragraph%BACKGROUND_COUNT
+    if backgroundIndex not in BACKGROUND_CACHE:
+        background = Image.open("backgrounds/bga"+str(backgroundIndex)+".png")
+        # Pale the background once instead of recalculating it for every frame.
+        BACKGROUND_CACHE[backgroundIndex] = Image.eval(background, lambda x: int(256-(256-x)/2))
+    frame = BACKGROUND_CACHE[backgroundIndex].copy()
 
     scribble = None
     if USE_BILLBOARDS:
@@ -85,12 +85,16 @@ def drawFrame(frameNum,paragraph,emotion,imageNum,pose,phoneNum,poseTimeSinceLas
 
     poseIndex = emotion*5+pose
     poseIndexBlinker = poseIndex*3+blinker
-    body = Image.open("poses/pose"+"{:04d}".format(poseIndexBlinker+1)+".png")
+    if poseIndexBlinker not in BODY_CACHE:
+        BODY_CACHE[poseIndexBlinker] = Image.open("poses/pose"+"{:04d}".format(poseIndexBlinker+1)+".png")
+    body = BODY_CACHE[poseIndexBlinker].copy()
 
     mouthImageNum = phoneNum+1
     if EMOTION_POSITIVITY[emotion] == 0:
         mouthImageNum += 11
-    mouth = Image.open("mouths/mouth"+"{:04d}".format(mouthImageNum)+".png")
+    if mouthImageNum not in MOUTH_CACHE:
+        MOUTH_CACHE[mouthImageNum] = Image.open("mouths/mouth"+"{:04d}".format(mouthImageNum)+".png")
+    mouth = MOUTH_CACHE[mouthImageNum].copy()
 
     if MOUTH_COOR[poseIndex,2] < 0:
         mouth = mouth.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
@@ -126,7 +130,7 @@ def drawFrame(frameNum,paragraph,emotion,imageNum,pose,phoneNum,poseTimeSinceLas
 def duplicateFrame(prevFrame, thisFrame):
     prevFrameFile = INPUT_FILE+"_frames/f"+"{:06d}".format(prevFrame)+".png"
     thisFrameFile = INPUT_FILE+"_frames/f"+"{:06d}".format(thisFrame)+".png"
-    shutil.copyfile(prevFrameFile, thisFrameFile)
+    os.link(prevFrameFile, thisFrameFile)
 
 def infoToString(arr):
     return ','. join(map(str,arr))
@@ -269,6 +273,9 @@ MOUTH_COOR[:,0:2] *= 3 #upscale for 1080p, not 360p
 
 lastFrameInfo = None
 CACHES = [[None,None]]*PARTS_COUNT
+BACKGROUND_CACHE = {}
+BODY_CACHE = {}
+MOUTH_CACHE = {}
 FRAME_CACHES = {}
 indicesOn = [-1]*(PARTS_COUNT-1)
 for frame in range(0,FRAME_COUNT):

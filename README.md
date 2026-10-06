@@ -1,4 +1,6 @@
 # lazykh
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/parubalo/lazykh/blob/main/lazykh_colab.ipynb)
+
 This Github repo has the source code for the automatic lip-syncing project described in these videos:
 
 2020: https://www.youtube.com/watch?v=y3B8YqeLCpY 
@@ -61,7 +63,15 @@ python3 code/gentleScriptWriter.py --input_file exampleVideo/ev
 ```
 
 ### Step 2 - Calculate phoneme timestamps with 'gentle'. (Runtime: 2 minutes for a 5-min video)
-Run this command, which will create ev.json.
+Gentle is Mac-only. For a portable Windows, Linux, and Colab workflow, install the Python dependencies and run the included Whisper-based adapter instead. It creates the same `ev.json` shape that the existing scheduler expects. The first run downloads Whisper's `base` model.
+```
+python -m venv .venv
+# Windows: .venv\Scripts\python -m pip install -r requirements.txt
+# macOS/Linux: .venv/bin/python -m pip install -r requirements.txt
+python code/whisperAligner.py --input_file exampleVideo/ev --model base
+```
+
+If you have Gentle installed on macOS, its original command remains compatible:
 ```
 python3 gentle-final/align.py exampleVideo/ev.wav exampleVideo/ev_g.txt -o exampleVideo/ev.json
 ```
@@ -69,19 +79,19 @@ python3 gentle-final/align.py exampleVideo/ev.wav exampleVideo/ev_g.txt -o examp
 ### Step 3 - Create a simplified timetable (Runtime: 2 seconds for a 5-min video)
 Run this command, which will create ev_schedule.json. (This is not my code, it's solely Gentle.)
 ```
-python3 code/scheduler.py --input_file exampleVideo/ev
+python code/scheduler.py --input_file exampleVideo/ev
 ```
 
 ### Step 4 - Render the frames (Runtime: 12 minutes for a 5-min video)
 Run this command, which will create thousands of image files. (30 images per second of final video)
 ```
-python3 code/videoDrawer.py --input_file exampleVideo/ev --use_billboards F --jiggly_transitions F
+python code/videoDrawer.py --input_file exampleVideo/ev --use_billboards F --jiggly_transitions F
 ```
 
 ### Step 5 - Convert the image sequence to a video and add audio (Runtime: 8 minutes for a 5-min video)
 Run this command, which will create the video file and delete all the image files.
 ```
-python3 code/videoFinisher.py --input_file exampleVideo/ev --keep_frames F
+python code/videoFinisher.py --input_file exampleVideo/ev --keep_frames F
 ```
 
 If you want to start working on more video projects with different filepaaths, replace "exampleVideo/ev" with the new video's filepath in all the commands above before running them. It should work for your new videos.

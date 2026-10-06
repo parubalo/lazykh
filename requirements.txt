@@ -1,3 +1,5 @@
 pygame
 numpy
 Pillow
+openai-whisper
+pronouncing

@@ -2,6 +2,7 @@ import argparse
 import os.path
 import os
 import subprocess
+import shutil
 
 def emptyFolder(folder):
     for filename in os.listdir(folder):
@@ -28,8 +29,13 @@ KEEP_FRAMES = args.keep_frames
 
 
 
-command = "ffmpeg -r 30 -f image2 -s 1920x1080 -i "+INPUT_FILE+"_frames/f%06d.png -i "+INPUT_FILE+".wav -vcodec libx264 -b 4M -c:a aac -strict -2 "+INPUT_FILE+"_final.mp4 "
-subprocess.call(command, shell=True)
+command = [
+    "ffmpeg", "-y", "-framerate", "30", "-start_number", "0",
+    "-i", INPUT_FILE+"_frames/f%06d.png", "-i", INPUT_FILE+".wav",
+    "-c:v", "libx264", "-b:v", "4M", "-pix_fmt", "yuv420p",
+    "-c:a", "aac", "-shortest", INPUT_FILE+"_final.mp4",
+]
+subprocess.run(command, check=True)
 
 if KEEP_FRAMES == "F":
     emptyFolder(INPUT_FILE+"_frames")

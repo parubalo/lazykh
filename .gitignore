@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+exampleVideo/*_frames/
+exampleVideo/*_final.mp4
+exampleVideo/*.json
+exampleVideo/*_g.txt
+exampleVideo/*_schedule.csv

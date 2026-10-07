@@ -59,11 +59,11 @@ parser.add_argument('--input_file', type=str,  help='the script')
 args = parser.parse_args()
 INPUT_FILE = args.input_file
 
-f = open(INPUT_FILE+".txt","r+")
+f = open(INPUT_FILE+".txt","r+", encoding="utf-8")
 originalScript = f.read()
 f.close()
 
-f = open(INPUT_FILE+".json","r+")
+f = open(INPUT_FILE+".json","r+", encoding="utf-8")
 fileData = f.read()
 f.close()
 
@@ -149,7 +149,7 @@ for i in range(WORD_COUNT):
             addPhoneme(truePhone, timeAt-phone["duration"])
     OS_IndexAt = OS_nextIndex
 
-f = open(INPUT_FILE+"_schedule.csv","w+")
+f = open(INPUT_FILE+"_schedule.csv","w+", encoding="utf-8")
 for i in range(len(strings)):
     f.write(strings[i])
     if i < len(strings)-1:

@@ -22,11 +22,24 @@ SCRIBBLE_H = 1000
 
 MAX_JIGGLE_TIME = 7
 BACKGROUND_COUNT = 5
+BILLBOARD_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"]
 
 def getJiggle(x, fader, multiplier):
     if x >= MAX_JIGGLE_TIME:
         return 1
     return math.exp(-fader*pow(x/multiplier,2))*math.sin(x/multiplier)
+
+def getBillboardPath(imageNum):
+    filename = getFilenameOfLine(origScript[imageNum])
+    billboardFolders = [INPUT_FILE+"_billboards", os.path.dirname(INPUT_FILE)]
+    for folder in billboardFolders:
+        if not os.path.isdir(folder):
+            continue
+        for candidate in os.listdir(folder):
+            name, extension = os.path.splitext(candidate)
+            if name.lower() == filename and extension.lower() in BILLBOARD_EXTENSIONS:
+                return os.path.join(folder, candidate)
+    return None
 
 def drawFrame(frameNum,paragraph,emotion,imageNum,pose,phoneNum,poseTimeSinceLast,poseTimeTillNext):
     global MOUTH_COOR
@@ -42,11 +55,12 @@ def drawFrame(frameNum,paragraph,emotion,imageNum,pose,phoneNum,poseTimeSinceLas
 
     scribble = None
     if USE_BILLBOARDS:
-        FILENAME = f"{INPUT_FILE}_billboards/{getFilenameOfLine(origScript[imageNum])}.png"
         if imageNum == CACHES[2][0]:
             scribble = CACHES[2][1]
-        elif os.path.isfile(FILENAME):
-            scribble = Image.open(FILENAME)
+        else:
+            filename = getBillboardPath(imageNum)
+            if filename is not None:
+                scribble = Image.open(filename)
             CACHES[2] = [imageNum,scribble]
 
         if scribble is not None:
@@ -225,7 +239,7 @@ USE_BILLBOARDS = (args.use_billboards == "T")
 ENABLE_JIGGLING = (args.jiggly_transitions == "T")
 ENABLE_FRAME_CACHING = (args.frame_caching != "F")
 
-f = open(INPUT_FILE+"_schedule.csv","r+")
+f = open(INPUT_FILE+"_schedule.csv","r+", encoding="utf-8")
 scheduleLines = f.read().split("\nSECTION\n")
 f.close()
 
@@ -254,7 +268,7 @@ phonemesPerFrame = np.zeros(FRAME_COUNT,dtype='int32')
 for i in range(len(phonemeTimeline)-1):
     setPhoneme(i)
 
-f = open(INPUT_FILE+".txt","r+")
+f = open(INPUT_FILE+".txt","r+", encoding="utf-8")
 origScript = f.read().split("\n")
 f.close()
 #while "" in origStr:

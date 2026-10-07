@@ -7,11 +7,11 @@ parser.add_argument('--input_file', type=str,  help='the script')
 args = parser.parse_args()
 INPUT_FILE = args.input_file
 
-f = open(INPUT_FILE+".txt","r+")
+f = open(INPUT_FILE+".txt","r+", encoding="utf-8")
 script = f.read()
 f.close()
 
-f = open(INPUT_FILE+"_g.txt","w+")
+f = open(INPUT_FILE+"_g.txt","w+", encoding="utf-8")
 f.write(removeTags(script))
 f.flush()
 f.close()
